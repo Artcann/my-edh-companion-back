@@ -10,6 +10,8 @@ import { DataSource } from 'typeorm';
 import { User } from './user/entities/user.entity';
 import { Role } from './auth/entities/role.entity';
 import { Token } from './auth/entities/mail-token.entity';
+import { GameModule } from './game/game.module';
+import { PodModule } from './pod/pod.module';
 
 @Module({
   imports: [
@@ -26,7 +28,7 @@ import { Token } from './auth/entities/mail-token.entity';
       autoLoadEntities: true
     }),
     AuthModule, 
-    UserModule],
+    UserModule, GameModule, PodModule],
   controllers: [AppController],
   providers: [AppService],
 })
