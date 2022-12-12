@@ -24,6 +24,15 @@ export class PlayerService {
     return Player.find();
   }
 
+  async findByUserId(userId: number) {
+    console.log(userId);
+
+    return Player.createQueryBuilder('player')
+      .leftJoinAndSelect('player.user', 'user')
+      .where('user.id = :id', { id: userId })
+      .getMany();
+  }
+
   async update() {
 
   }

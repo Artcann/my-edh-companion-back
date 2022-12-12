@@ -15,6 +15,8 @@ import { Player } from './game/entities/player.entity';
 import { Game } from './game/entities/game.entity';
 import { Pod } from './game/entities/pod.entity';
 import { Deck } from './game/entities/deck.entity';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -33,8 +35,10 @@ import { Deck } from './game/entities/deck.entity';
     AuthModule, 
     UserModule, GameModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },],
 })
-export class AppModule {
-  constructor(private datasource: DataSource) {}
-}
+export class AppModule {}

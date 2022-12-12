@@ -1,6 +1,7 @@
+import { JwtAuthGuard } from './../auth/guards/jwt-auth.guard';
 import { CreatePlayerDto } from './dto/create-player.dto';
 import { PlayerService } from './player.service';
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post, Request } from "@nestjs/common";
 
 @Controller("player")
 export class PlayerController {
@@ -11,5 +12,10 @@ export class PlayerController {
   @Post('create')
   async create(@Body() createPlayerDto: CreatePlayerDto) {
     return this.playerService.create(createPlayerDto);
+  }
+
+  @Get('me')
+  async getAllPlayerOfCurrentUser(@Request() req) {
+    return this.playerService.findByUserId(req.user.id);
   }
 }
