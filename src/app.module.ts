@@ -11,7 +11,10 @@ import { User } from './user/entities/user.entity';
 import { Role } from './auth/entities/role.entity';
 import { Token } from './auth/entities/mail-token.entity';
 import { GameModule } from './game/game.module';
-import { PodModule } from './pod/pod.module';
+import { Player } from './game/entities/player.entity';
+import { Game } from './game/entities/game.entity';
+import { Pod } from './game/entities/pod.entity';
+import { Deck } from './game/entities/deck.entity';
 
 @Module({
   imports: [
@@ -23,12 +26,12 @@ import { PodModule } from './pod/pod.module';
       username: process.env.POSTGRES_USERNAME || 'postgres',
       password: process.env.POSTGRES_PASSWORD || 'postgres',
       database: process.env.POSTGRES_DB || 'edh-companion',
-      entities: [User, Role, Token],
+      entities: [User, Role, Token, Player, Game, Pod, Deck],
       synchronize: true,
       autoLoadEntities: true
     }),
     AuthModule, 
-    UserModule, GameModule, PodModule],
+    UserModule, GameModule],
   controllers: [AppController],
   providers: [AppService],
 })

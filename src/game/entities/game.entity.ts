@@ -2,7 +2,7 @@ import { Pod } from './pod.entity';
 import { Player } from './player.entity';
 import { Exclude } from "class-transformer";
 import { timestamp } from "rxjs";
-import { BaseEntity, Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
 export class Game extends BaseEntity {
@@ -23,5 +23,12 @@ export class Game extends BaseEntity {
   pod: Pod
 
   @ManyToMany(() => Player, player => player.games)
+  @JoinTable()
   players: Player[]
+
+  @BeforeInsert()
+  async setExpirationDate() {
+    let date = new Date();
+    this.date = date;
+  }
 }

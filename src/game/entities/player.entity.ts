@@ -3,6 +3,7 @@ import { User } from './../../user/entities/user.entity';
 import { Exclude } from "class-transformer";
 import { BaseEntity, Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Deck } from './deck.entity';
+import { Pod } from './pod.entity';
 
 @Entity()
 export class Player extends BaseEntity {
@@ -19,6 +20,9 @@ export class Player extends BaseEntity {
   @ManyToMany(() => Game, game => game.players)
   games: Game[]
 
-  @OneToMany(() => Deck, deck => deck.owner)
+  @OneToMany(() => Deck, deck => deck.owner, {eager: true})
   decks: Deck[]
+
+  @ManyToOne(() => Pod, pod => pod.players)
+  pod: Pod
 }

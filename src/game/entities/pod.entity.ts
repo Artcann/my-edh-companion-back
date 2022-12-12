@@ -1,3 +1,4 @@
+import { Player } from 'src/game/entities/player.entity';
 import { Game } from './game.entity';
 import { Exclude } from "class-transformer";
 import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
@@ -5,7 +6,6 @@ import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "t
 @Entity()
 export class Pod extends BaseEntity {
   @PrimaryGeneratedColumn()
-  @Exclude()
   id: number
 
   @Column()
@@ -13,4 +13,7 @@ export class Pod extends BaseEntity {
 
   @OneToMany(() => Game, game => game.pod)
   games: Game[]
+
+  @OneToMany(() => Player, player => player.pod)
+  players: Player[]
 }

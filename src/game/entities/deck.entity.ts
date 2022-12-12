@@ -8,7 +8,7 @@ export class Deck extends BaseEntity {
   @Exclude()
   id: number
 
-  @Column()
+  @Column({nullable: true})
   archidektId: string
 
   @Column()
@@ -17,6 +17,6 @@ export class Deck extends BaseEntity {
   @Column()
   commander: string
 
-  @ManyToOne(() => Player, player => player.decks)
+  @ManyToOne(() => Player, player => player.decks, {cascade: true})
   owner: Player
 }
