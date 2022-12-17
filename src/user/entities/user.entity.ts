@@ -1,7 +1,8 @@
 import { Exclude } from "class-transformer";
 import { Role } from "src/auth/entities/role.entity";
 import * as bcrypt from "bcryptjs"
-import { BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from "typeorm"
+import { BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm"
+import { Player } from "src/game/entities/player.entity";
 
 @Entity()
 export class User extends BaseEntity {
@@ -22,6 +23,9 @@ export class User extends BaseEntity {
     @ManyToMany(() => Role, {cascade: true, eager: true})
     @JoinTable()
     role: Role[];
+
+    @OneToMany(() => Player, player => player.user)
+    players: Player[]
 
     @BeforeInsert()
     async hashPassword() {
