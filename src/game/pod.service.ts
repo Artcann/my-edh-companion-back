@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import { CreatePlayerDto } from "./dto/create-player.dto";
 import { CreatePodDto } from "./dto/create-pod.dto";
 import { Pod } from "./entities/pod.entity";
 
@@ -12,5 +13,13 @@ export class PodService {
 
   findOne(id: number) {
     return Pod.findOneBy({ id: id });
+  }
+
+  getPodByUserId(userId: number) {
+    return Pod.createQueryBuilder('pod')
+      .leftJoinAndSelect('pod.players', 'player')
+      .leftJoinAndSelect('player.user', 'user')
+      .where("user.id = :id", { id: userId })
+      .getMany();
   }
 }

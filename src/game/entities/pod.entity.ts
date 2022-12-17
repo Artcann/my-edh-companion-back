@@ -11,9 +11,9 @@ export class Pod extends BaseEntity {
   @Column()
   name: string
 
-  @OneToMany(() => Game, game => game.pod)
+  @OneToMany(() => Game, game => game.pod, {eager: true})
   games: Game[]
 
-  @OneToMany(() => Player, player => player.pod)
+  @OneToMany(() => Player, player => player.pod, {eager: true})
   players: Player[]
 }

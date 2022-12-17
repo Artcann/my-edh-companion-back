@@ -4,5 +4,5 @@ export class CreateGameDto {
   
   podId: number
 
-  playersId: number[]
+  decksId: number[]
 }
