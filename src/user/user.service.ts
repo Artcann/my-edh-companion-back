@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { RoleEnum } from "src/auth/entities/enum/role.enum";
 import { Role } from "src/auth/entities/role.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
+import { UpdateUserDto } from "./dto/update-user.dto";
 import { User } from "./entities/user.entity";
 
 @Injectable()
@@ -38,9 +39,10 @@ export class UserService {
     return User.find();
   }
 
-/*   async update(id: string, updateUserDto: UpdateUserDto) {
-    const user = await User.findOne(id);
+  async update(id: number, updateUserDto: UpdateUserDto) {
+    const user = await User.findOneBy({ id: id});
     Object.assign(user, updateUserDto);
+    console.log(user);
     return user.save();
-  } */
+  }
 }

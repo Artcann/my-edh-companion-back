@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
@@ -6,6 +6,8 @@ import { EmailVerificationDto } from './dto/email-verification.dto';
 import { RoleEnum } from './entities/enum/role.enum';
 import { Token } from './entities/mail-token.entity';
 import { Role } from './entities/role.entity';
+
+import * as bcrypt from "bcryptjs"
 
 @Injectable()
 export class AuthService {
@@ -17,14 +19,9 @@ export class AuthService {
   }
 
   async login(user: User) {
-    const userEntity = await User.findOneBy({
-      id: user.id
-    });
+    const tokens = this.getTokens(user.id, user.email)
 
-    const payload = { email: user.email.toLocaleLowerCase(), sub: user.id };
-    return {
-      access_token: this.jwtService.sign(payload, {secret: process.env.JWT_SECRET}),
-    };
+    return tokens;
   }
 
   async mailLogin(emailVerificationDto: EmailVerificationDto) {
@@ -38,9 +35,7 @@ export class AuthService {
       })
     } else {
       const payload = { email: emailVerificationDto.email.toLocaleLowerCase() };
-      return {
-        access_token: this.jwtService.sign(payload, {secret: process.env.JWT_SECRET}),
-      }
+      return this.getTokens(user.id, user.email)
     }
     
   }
@@ -63,6 +58,59 @@ export class AuthService {
       return result;
     }
     return null;
+  }
+
+  async updateRefreshToken(userId: number, refreshToken: string) {
+    const hashedRefreshToken: string = await bcrypt.hash(refreshToken, 8);
+    await this.userService.update(userId, {
+      refreshToken: hashedRefreshToken,
+    });
+  }
+
+  async getTokens(userId: number, email: string) {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(
+        {
+          sub: userId,
+          email,
+        },
+        {
+          secret: process.env.JWT_ACCESS_SECRET,
+          expiresIn: '15m',
+        },
+      ),
+      this.jwtService.signAsync(
+        {
+          sub: userId,
+          email,
+        },
+        {
+          secret: process.env.JWT_REFRESH_SECRET,
+          expiresIn: '7d',
+        },
+      ),
+    ]);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async refreshTokens(userId: number, refreshToken: string) {
+    const user = await this.userService.findOneById(userId);
+
+    if (!user || !user.refreshToken)
+      throw new ForbiddenException('Access Denied');
+    const refreshTokenMatches = await bcrypt.compare(
+      refreshToken,
+      user.refreshToken,
+    );
+
+    if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
+    const tokens = await this.getTokens(user.id, user.username);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+    return tokens;
   }
 
 /*   async sendVerificationMail(user: User, token: Token) {

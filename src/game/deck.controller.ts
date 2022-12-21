@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from "@nestjs/common";
+import { Body, Controller, Get, Post } from "@nestjs/common";
 import { DeckService } from "./deck.service";
 import { CreateDeckDto } from "./dto/create-deck.dto";
 

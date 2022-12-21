@@ -28,7 +28,7 @@ export class PlayerService {
     console.log(userId);
 
     return Player.createQueryBuilder('player')
-      .leftJoinAndSelect('player.user', 'user')
+      .leftJoin('player.user', 'user')
       .where('user.id = :id', { id: userId })
       .getMany();
   }
