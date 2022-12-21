@@ -6,8 +6,12 @@ import { EmailVerificationDto } from './dto/email-verification.dto';
 import { RoleEnum } from './entities/enum/role.enum';
 import { Token } from './entities/mail-token.entity';
 import { Role } from './entities/role.entity';
+import { createTransport } from 'nodemailer';
 
-import * as bcrypt from "bcryptjs"
+import * as bcrypt from "bcryptjs";
+
+var AWS = require("aws-sdk");
+AWS.config.update({region: 'us-east-1'});
 
 @Injectable()
 export class AuthService {
@@ -15,7 +19,9 @@ export class AuthService {
   private transporter;
 
   constructor(private jwtService: JwtService, private userService: UserService) {
-    //this.generateTransporter();
+    this.transporter = createTransport({
+      SES: new AWS.SES(),
+    });
   }
 
   async login(user: User) {
@@ -113,67 +119,27 @@ export class AuthService {
     return tokens;
   }
 
-/*   async sendVerificationMail(user: User, token: Token) {
+  async sendVerificationMail(user: User, token: Token) {
 
-    const htmlPath = user.language === LanguageEnum.FR
-    ? './ressources/templates/mail-fr.html'
-    : './ressources/templates/mail-en.html';
-
-    const source = readFileSync(htmlPath, 'utf-8').toString();
-
-    const templateVars = {
-      name: user.first_name !== undefined ? user.first_name : "",
-      comfirmLink: process.env.API_URL + "auth/confirmation/" + token.token
-    }
-
-    const template = ejs.render(source, templateVars);
-    const text = htmlToText(template);
-
-    const htmlWithStyle = juice(template);
+    const confirmationLink = process.env.BASE_URL + "auth/confirmation/" + token.token
 
     try {
       await this.transporter.verify();
 
       await this.transporter.sendMail({
-        from:{
-          name: "Liste GRAVITY",
-          address: "respo@tech.liste-gravity.fr"},
+        from: `art.cann@orange.fr`,
         to: user.email,
-        subject: "Verification Mail",
-        text: text,
-        html: htmlWithStyle
-      })
+        subject: "Your Sign-In Link",
+        text: `Hi there,
+    
+        This is your sign-in link: ${confirmationLink}
+        
+        This link will expire in 1 hour.
+        
+        For security reasons, you shouldn't reply to this email.`,
+      });
     } catch (err) {
       console.error(err);
     }
   }
-
-  async generateTransporter() {
-    const MAIL = "arthur.cann.29@gmail.com"
-
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.MAILER_CLIENT_ID,
-      process.env.MAILER_PRIVATE_KEY,
-      "https://developers.google.com/oauthplayground"
-    );
-
-    oauth2Client.setCredentials({
-      refresh_token: process.env.REFRESH_TOKEN
-    });
-
-    const access_token = await oauth2Client.getAccessToken();
-
-    this.transporter = await createTransport({
-      service: "gmail",
-      host: 'smtp.gmail.com',
-      auth: {
-        type: 'OAuth2',
-        user: MAIL,
-        clientId: process.env.MAILER_CLIENT_ID,
-        clientSecret: process.env.MAILER_PRIVATE_KEY,
-        refreshToken: process.env.REFRESH_TOKEN,
-        accessToken: access_token
-      },
-    });
-  } */
 }

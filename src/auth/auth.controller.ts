@@ -22,17 +22,19 @@ export class AuthController {
   @Post('signup')
   async signup(@Body() createUserDto: CreateUserDto) {
     const user = await this.userService.create(createUserDto);
+    //const user = User.create<User>(createUserDto);
     const mail_token = Token.create({userId: user.id, token: randomBytes(16).toString('hex')});
     Token.save(mail_token);
 
     const tokens = await this.authService.getTokens(user.id, user.email);
     this.authService.updateRefreshToken(user.id, tokens.refreshToken)
 
-    //this.authService.sendVerificationMail(user, token);
+    this.authService.sendVerificationMail(user, mail_token);
 
     return tokens;
   }
 
+  @Public()
   @Get('confirmation/:token')
   async confirmProfile(@Request() req) {
     const token = await Token.findOneBy({ token: req.params.token });
@@ -57,6 +59,7 @@ export class AuthController {
 
   }
 
+  @Public()
   @Post('confirmation/resend/:mail')
   async resendMail(@Request() req) {
     const mail = req.params.mail;
@@ -66,7 +69,7 @@ export class AuthController {
     const token = Token.create({userId: user.id, token: randomBytes(16).toString('hex')});
     Token.save(token);
     
-    //this.authService.sendVerificationMail(user, token);
+    this.authService.sendVerificationMail(user, token);
 
     return "mail sent successfully";
   }
