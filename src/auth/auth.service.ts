@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ForbiddenException, HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
@@ -6,6 +6,12 @@ import { EmailVerificationDto } from './dto/email-verification.dto';
 import { RoleEnum } from './entities/enum/role.enum';
 import { Token } from './entities/mail-token.entity';
 import { Role } from './entities/role.entity';
+import { createTransport } from 'nodemailer';
+
+import * as bcrypt from "bcryptjs";
+
+var AWS = require("aws-sdk");
+AWS.config.update({region: 'us-east-1'});
 
 @Injectable()
 export class AuthService {
@@ -13,18 +19,15 @@ export class AuthService {
   private transporter;
 
   constructor(private jwtService: JwtService, private userService: UserService) {
-    //this.generateTransporter();
+    this.transporter = createTransport({
+      SES: new AWS.SES(),
+    });
   }
 
   async login(user: User) {
-    const userEntity = await User.findOneBy({
-      id: user.id
-    });
+    const tokens = this.getTokens(user.id, user.email)
 
-    const payload = { email: user.email.toLocaleLowerCase(), sub: user.id };
-    return {
-      access_token: this.jwtService.sign(payload, {secret: process.env.JWT_SECRET}),
-    };
+    return tokens;
   }
 
   async mailLogin(emailVerificationDto: EmailVerificationDto) {
@@ -38,9 +41,7 @@ export class AuthService {
       })
     } else {
       const payload = { email: emailVerificationDto.email.toLocaleLowerCase() };
-      return {
-        access_token: this.jwtService.sign(payload, {secret: process.env.JWT_SECRET}),
-      }
+      return this.getTokens(user.id, user.email)
     }
     
   }
@@ -65,67 +66,80 @@ export class AuthService {
     return null;
   }
 
-/*   async sendVerificationMail(user: User, token: Token) {
+  async updateRefreshToken(userId: number, refreshToken: string) {
+    const hashedRefreshToken: string = await bcrypt.hash(refreshToken, 8);
+    await this.userService.update(userId, {
+      refreshToken: hashedRefreshToken,
+    });
+  }
 
-    const htmlPath = user.language === LanguageEnum.FR
-    ? './ressources/templates/mail-fr.html'
-    : './ressources/templates/mail-en.html';
+  async getTokens(userId: number, email: string) {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(
+        {
+          sub: userId,
+          email,
+        },
+        {
+          secret: process.env.JWT_ACCESS_SECRET,
+          expiresIn: '15m',
+        },
+      ),
+      this.jwtService.signAsync(
+        {
+          sub: userId,
+          email,
+        },
+        {
+          secret: process.env.JWT_REFRESH_SECRET,
+          expiresIn: '7d',
+        },
+      ),
+    ]);
 
-    const source = readFileSync(htmlPath, 'utf-8').toString();
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
 
-    const templateVars = {
-      name: user.first_name !== undefined ? user.first_name : "",
-      comfirmLink: process.env.API_URL + "auth/confirmation/" + token.token
-    }
+  async refreshTokens(userId: number, refreshToken: string) {
+    const user = await this.userService.findOneById(userId);
 
-    const template = ejs.render(source, templateVars);
-    const text = htmlToText(template);
+    if (!user || !user.refreshToken)
+      throw new ForbiddenException('Access Denied');
+    const refreshTokenMatches = await bcrypt.compare(
+      refreshToken,
+      user.refreshToken,
+    );
 
-    const htmlWithStyle = juice(template);
+    if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
+    const tokens = await this.getTokens(user.id, user.username);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+    return tokens;
+  }
+
+  async sendVerificationMail(user: User, token: Token) {
+
+    const confirmationLink = process.env.BASE_URL + "auth/confirmation/" + token.token
 
     try {
       await this.transporter.verify();
 
       await this.transporter.sendMail({
-        from:{
-          name: "Liste GRAVITY",
-          address: "respo@tech.liste-gravity.fr"},
+        from: `art.cann@orange.fr`,
         to: user.email,
-        subject: "Verification Mail",
-        text: text,
-        html: htmlWithStyle
-      })
+        subject: "Your Sign-In Link",
+        text: `Hi there,
+    
+        This is your sign-in link: ${confirmationLink}
+        
+        This link will expire in 1 hour.
+        
+        For security reasons, you shouldn't reply to this email.`,
+      });
     } catch (err) {
       console.error(err);
     }
   }
-
-  async generateTransporter() {
-    const MAIL = "arthur.cann.29@gmail.com"
-
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.MAILER_CLIENT_ID,
-      process.env.MAILER_PRIVATE_KEY,
-      "https://developers.google.com/oauthplayground"
-    );
-
-    oauth2Client.setCredentials({
-      refresh_token: process.env.REFRESH_TOKEN
-    });
-
-    const access_token = await oauth2Client.getAccessToken();
-
-    this.transporter = await createTransport({
-      service: "gmail",
-      host: 'smtp.gmail.com',
-      auth: {
-        type: 'OAuth2',
-        user: MAIL,
-        clientId: process.env.MAILER_CLIENT_ID,
-        clientSecret: process.env.MAILER_PRIVATE_KEY,
-        refreshToken: process.env.REFRESH_TOKEN,
-        accessToken: access_token
-      },
-    });
-  } */
 }

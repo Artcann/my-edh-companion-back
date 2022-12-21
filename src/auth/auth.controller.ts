@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Request, UseGuards, HttpStatus, NotFoundException} from '@nestjs/common';
+import { Controller, Get, Post, Body, Request, UseGuards, HttpStatus, NotFoundException, Req} from '@nestjs/common';
 import { randomBytes } from 'crypto';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { User } from 'src/user/entities/user.entity';
@@ -9,6 +9,7 @@ import { RoleEnum } from './entities/enum/role.enum';
 import { Token } from './entities/mail-token.entity';
 import { Role } from './entities/role.entity';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
 
 
 @Controller('auth')
@@ -20,18 +21,20 @@ export class AuthController {
   @Public()
   @Post('signup')
   async signup(@Body() createUserDto: CreateUserDto) {
-    console.log(createUserDto);
     const user = await this.userService.create(createUserDto);
-    const token = Token.create({userId: user.id, token: randomBytes(16).toString('hex')});
-    Token.save(token);
+    //const user = User.create<User>(createUserDto);
+    const mail_token = Token.create({userId: user.id, token: randomBytes(16).toString('hex')});
+    Token.save(mail_token);
 
-    //this.authService.sendVerificationMail(user, token);
+    const tokens = await this.authService.getTokens(user.id, user.email);
+    this.authService.updateRefreshToken(user.id, tokens.refreshToken)
 
-    return user;
+    this.authService.sendVerificationMail(user, mail_token);
 
-    
+    return tokens;
   }
 
+  @Public()
   @Get('confirmation/:token')
   async confirmProfile(@Request() req) {
     const token = await Token.findOneBy({ token: req.params.token });
@@ -56,6 +59,7 @@ export class AuthController {
 
   }
 
+  @Public()
   @Post('confirmation/resend/:mail')
   async resendMail(@Request() req) {
     const mail = req.params.mail;
@@ -65,7 +69,7 @@ export class AuthController {
     const token = Token.create({userId: user.id, token: randomBytes(16).toString('hex')});
     Token.save(token);
     
-    //this.authService.sendVerificationMail(user, token);
+    this.authService.sendVerificationMail(user, token);
 
     return "mail sent successfully";
   }
@@ -74,12 +78,14 @@ export class AuthController {
   @Public()
   @UseGuards(LocalAuthGuard)
   async login(@Request() req) {
-    const reponse = this.authService.login(req.user);
+    return await this.authService.login(req.user);
 
-    const userEntity = await User.findOneBy({id: req.user.id});
+  }
 
-    userEntity.save();
-
-    return reponse;
+  @Public()
+  @UseGuards(RefreshTokenGuard)
+  @Get('refresh')
+  refreshTokens(@Request() req) {
+    return this.authService.refreshTokens(req.user.id, req.user.refreshToken);
   }
 }
