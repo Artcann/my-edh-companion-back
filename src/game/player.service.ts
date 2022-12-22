@@ -1,5 +1,6 @@
+import { User } from 'src/user/entities/user.entity';
 import { CreatePlayerDto } from './dto/create-player.dto';
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { Player } from './entities/player.entity';
 import { Pod } from './entities/pod.entity';
 
@@ -25,12 +26,29 @@ export class PlayerService {
   }
 
   async findByUserId(userId: number) {
-    console.log(userId);
-
     return Player.createQueryBuilder('player')
       .leftJoin('player.user', 'user')
       .where('user.id = :id', { id: userId })
       .getMany();
+  }
+
+  async claimPlayer(userId: number, playerId: number) {
+    const player = await Player.findOneBy({ id: playerId });
+    const user = await User.findOneBy({ id: userId });
+
+    if (player.user !== undefined) {
+      throw new BadRequestException({
+        error: "This player has already been claimed"
+      })
+    }
+
+    if (user.players === undefined) {
+      user.players = []
+    }
+
+    user.players.push(player);
+    
+    return user.save();
   }
 
   async update() {
