@@ -1,3 +1,4 @@
+import { CardsModule } from './cards/cards.module';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -17,6 +18,7 @@ import { Pod } from './game/entities/pod.entity';
 import { Deck } from './game/entities/deck.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -32,8 +34,9 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
       synchronize: true,
       autoLoadEntities: true
     }),
+    ScheduleModule.forRoot(),
     AuthModule, 
-    UserModule, GameModule],
+    UserModule, GameModule, CardsModule],
   controllers: [AppController],
   providers: [AppService,
     {

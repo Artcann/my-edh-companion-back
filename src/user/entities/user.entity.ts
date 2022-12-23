@@ -22,6 +22,15 @@ export class User extends BaseEntity {
     @Column({nullable: true})
     refreshToken: string;
 
+    @Column({ nullable: true })
+    archidektId: number;
+
+    @Column({ nullable: true })
+    archidektRefreshToken: string;
+
+    @Column({ nullable: true })
+    archidektAccessToken: string;
+
     @Exclude()
     @ManyToMany(() => Role, {cascade: true, eager: true})
     @JoinTable()

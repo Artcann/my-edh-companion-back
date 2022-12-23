@@ -19,4 +19,12 @@ export class DeckService {
 
     return deck.save();
   }
+
+  async getDecksOfUser(userId: number) {
+    return Deck.createQueryBuilder("deck")
+      .leftJoin("deck.owner", "player")
+      .leftJoin("player.user", "user")
+      .where("user.id = :id", { id: userId })
+      .getMany();
+  }  
 }
