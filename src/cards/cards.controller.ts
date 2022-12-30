@@ -1,5 +1,5 @@
 import { ArchidektLoginDto } from './dto/archidekt-login.dto';
-import { Body, Controller, Get, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { ArchidektService } from './archidekt.service';
 import { User } from 'src/user/entities/user.entity';
 
@@ -27,11 +27,16 @@ export class CardsController {
   }
 
   @Get("archidekt/deck")
-  async getDecksByUserId(@Req() req) {
+  async getDecksByUserId(@Req() req, @Query() query) {
     const user = await User.findOneBy({
       id: req.user.id
     })
 
-    return this.archidektService.getDecksByUserId(user.archidektId, user.archidektAccessToken)
+    if (query.page === undefined) {
+      query.page = 1
+    }
+
+    return this.archidektService.getDecksByUserId(user.archidektId, user.archidektAccessToken, query.page)
   }
+
 }
