@@ -18,6 +18,9 @@ export class Deck extends BaseEntity {
   @Column()
   commander: string
 
+  @Column({nullable: true})
+  featured: string
+
   @ManyToOne(() => Player, player => player.decks, {cascade: true})
   owner: Player
 

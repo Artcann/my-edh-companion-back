@@ -28,13 +28,13 @@ export class ArchidektService {
     return data
   }
 
-  async getDecksByUserId(archidektId: number, accessToken: string) {
+  async getDecksByUserId(archidektId: number, accessToken: string, page: number) {
     const headersRequest = {
       'Authorization': `JWT ${accessToken}`,
   };
 
     const { data } = await firstValueFrom(
-      this.http.get(process.env.ARCHIDEKT_BASE_URL + "decks/?userid=" + archidektId,
+      this.http.get(process.env.ARCHIDEKT_BASE_URL + `decks/?page=${page}&userid=${archidektId}`,
         { headers: headersRequest })
         .pipe(
           catchError((error: AxiosError) => {
@@ -45,5 +45,25 @@ export class ArchidektService {
     )
 
     return data;
+  }
+
+  async refreshToken(archidektRefresh: string, archidektAccess: string) {
+    const headersRequest = {
+      'Authorization': `JWT ${archidektAccess}`,
+    };
+
+    const { data } = await firstValueFrom(
+      this.http.post(process.env.ARCHIDEKT_BASE_URL + "refresh",
+        {
+          refresh: archidektRefresh
+        })
+        .pipe(
+          catchError((error: AxiosError) => {
+            console.log(error.response.data);
+            throw 'An error happened!';
+        }))
+    )
+
+    return data.access_token
   }
 }
