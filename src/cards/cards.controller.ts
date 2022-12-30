@@ -39,4 +39,13 @@ export class CardsController {
     return this.archidektService.getDecksByUserId(user.archidektId, user.archidektAccessToken, query.page)
   }
 
+  @Get("archidekt/fetch/all")
+  async fetchAndSaveAllDecks(@Req() req) {
+    const user = await User.findOneBy({
+      id: req.user.id
+    })
+
+    return this.archidektService.fetchAndSaveAllDecks(user);
+  }
+
 }

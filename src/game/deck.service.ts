@@ -15,16 +15,17 @@ export class DeckService {
     owner.decks.push(deck);
     owner.save(); */
 
-    deck.owner = owner;
+    deck.player_owner = owner;
 
     return deck.save();
   }
 
   async getDecksOfUser(userId: number) {
     return Deck.createQueryBuilder("deck")
-      .leftJoin("deck.owner", "player")
+      .leftJoin("deck.player_owner", "player")
+      .leftJoin("deck.user_owner", "user2")
       .leftJoin("player.user", "user")
-      .where("user.id = :id", { id: userId })
+      .where("user.id = :id OR user2.id = :id", { id: userId })
       .getMany();
   }  
 }

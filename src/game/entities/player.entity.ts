@@ -17,7 +17,7 @@ export class Player extends BaseEntity {
   @ManyToOne(() => User, user => user.players)
   user: User
 
-  @OneToMany(() => Deck, deck => deck.owner, {eager: true})
+  @OneToMany(() => Deck, deck => deck.player_owner, {eager: true})
   decks: Deck[]
 
   @ManyToOne(() => Pod, pod => pod.players)

@@ -1,9 +1,10 @@
-import { AxiosError } from './../../node_modules/@nestjs/axios/node_modules/axios/index.d';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from "@nestjs/common";
 import { catchError, firstValueFrom } from 'rxjs';
-import { arch } from 'os';
+import {AxiosError} from "axios"
+import { Deck } from 'src/game/entities/deck.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class ArchidektService {
@@ -17,9 +18,14 @@ export class ArchidektService {
       {
         email: email,
         password: password
+        },
+        {
+          'headers': {
+            'Content-Type': 'application/json'
+          }
         }).pipe(
           catchError((error: AxiosError) => {
-            console.log(error.response.data);
+            console.log(error.response);
             throw 'An error happened!';
           }),
       )
@@ -45,6 +51,21 @@ export class ArchidektService {
     )
 
     return data;
+  }
+
+  async fetchAndSaveAllDecks(user: User) {
+    let page = 1;
+    const decks = [] as Array<Deck>;
+    let decksDTO: any;
+
+    do {
+      decksDTO = await this.getDecksByUserId(user.archidektId, user.archidektAccessToken, page);
+      page++;
+      decks.push(...Deck.create<Deck>(decksDTO.results))
+    } while(decksDTO.next !== null);
+
+    user.archidekt_decks = decks;
+    return user.save();
   }
 
   async refreshToken(archidektRefresh: string, archidektAccess: string) {

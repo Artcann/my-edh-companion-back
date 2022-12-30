@@ -2,6 +2,7 @@ import { Player } from 'src/game/entities/player.entity';
 import { Exclude } from "class-transformer";
 import { BaseEntity, Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { Game } from './game.entity';
+import { User } from 'src/user/entities/user.entity';
 
 @Entity()
 export class Deck extends BaseEntity {
@@ -15,14 +16,17 @@ export class Deck extends BaseEntity {
   @Column()
   name: string
 
-  @Column()
+  @Column({nullable: true})
   commander: string
 
   @Column({nullable: true})
   featured: string
 
-  @ManyToOne(() => Player, player => player.decks, {cascade: true})
-  owner: Player
+  @ManyToOne(() => Player, player => player.decks, {cascade: true, nullable: true})
+  player_owner: Player
+
+  @ManyToOne(() => User, user => user.archidekt_decks, {nullable: true})
+  user_owner: User
 
   @OneToMany(() => Game, game => game.winner)
   wins: Game[]

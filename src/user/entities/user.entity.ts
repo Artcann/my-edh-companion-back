@@ -3,6 +3,7 @@ import { Role } from "src/auth/entities/role.entity";
 import * as bcrypt from "bcryptjs"
 import { BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm"
 import { Player } from "src/game/entities/player.entity";
+import { Deck } from "src/game/entities/deck.entity";
 
 @Entity()
 export class User extends BaseEntity {
@@ -30,6 +31,9 @@ export class User extends BaseEntity {
 
     @Column({ nullable: true })
     archidektAccessToken: string;
+
+    @OneToMany(() => Deck, deck => deck.user_owner, {nullable: true, cascade: true})
+    archidekt_decks: Deck[]
 
     @Exclude()
     @ManyToMany(() => Role, {cascade: true, eager: true})
