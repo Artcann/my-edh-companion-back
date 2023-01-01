@@ -8,6 +8,4 @@ import * as Scry from "scryfall-sdk";
 @Injectable()
 export class ScryfallService {
 
-  
-
 }

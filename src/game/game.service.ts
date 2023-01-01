@@ -3,7 +3,7 @@ import { CreateGameDto } from './dto/create-game.dto';
 import { Injectable } from '@nestjs/common';
 import { Game } from './entities/game.entity';
 import { Pod } from './entities/pod.entity';
-import { Deck } from './entities/deck.entity';
+import { Deck } from '../decks/entities/deck.entity';
 
 @Injectable()
 export class GameService {
