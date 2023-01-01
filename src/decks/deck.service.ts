@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { CreateDeckDto } from "./dto/create-deck.dto";
 import { Deck } from "./entities/deck.entity";
-import { Player } from "./entities/player.entity";
+import { Player } from "../game/entities/player.entity";
 
 @Injectable()
 export class DeckService {

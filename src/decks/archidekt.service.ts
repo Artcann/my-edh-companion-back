@@ -3,7 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from "@nestjs/common";
 import { catchError, firstValueFrom } from 'rxjs';
 import {AxiosError} from "axios"
-import { Deck } from 'src/game/entities/deck.entity';
+import { Deck } from 'src/decks/entities/deck.entity';
 import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
@@ -61,6 +61,10 @@ export class ArchidektService {
     do {
       decksDTO = await this.getDecksByUserId(user.archidektId, user.archidektAccessToken, page);
       page++;
+      decksDTO.results.map(deckDTO => {
+        deckDTO.archidektId = deckDTO.id
+        delete deckDTO.id
+      });
       decks.push(...Deck.create<Deck>(decksDTO.results))
     } while(decksDTO.next !== null);
 

@@ -3,7 +3,7 @@ import { Role } from "src/auth/entities/role.entity";
 import * as bcrypt from "bcryptjs"
 import { BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm"
 import { Player } from "src/game/entities/player.entity";
-import { Deck } from "src/game/entities/deck.entity";
+import { Deck } from "src/decks/entities/deck.entity";
 
 @Entity()
 export class User extends BaseEntity {

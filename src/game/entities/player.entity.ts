@@ -1,9 +1,8 @@
-import { Game } from './game.entity';
 import { User } from './../../user/entities/user.entity';
 import { Exclude } from "class-transformer";
 import { BaseEntity, Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Deck } from './deck.entity';
 import { Pod } from './pod.entity';
+import { Deck } from 'src/decks/entities/deck.entity';
 
 @Entity()
 export class Player extends BaseEntity {
