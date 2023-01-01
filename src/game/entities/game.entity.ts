@@ -1,9 +1,7 @@
 import { Pod } from './pod.entity';
-import { Player } from './player.entity';
 import { Exclude } from "class-transformer";
-import { timestamp } from "rxjs";
 import { BaseEntity, BeforeInsert, Column, Entity, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { Deck } from './deck.entity';
+import { Deck } from 'src/decks/entities/deck.entity';
 
 @Entity()
 export class Game extends BaseEntity {

@@ -14,9 +14,11 @@ import { GameModule } from './game/game.module';
 import { Player } from './game/entities/player.entity';
 import { Game } from './game/entities/game.entity';
 import { Pod } from './game/entities/pod.entity';
-import { Deck } from './game/entities/deck.entity';
+import { Deck } from './decks/entities/deck.entity';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { ScheduleModule } from '@nestjs/schedule';
+import { DecksModule } from './decks/decks.module';
 
 @Module({
   imports: [
@@ -32,8 +34,9 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
       synchronize: true,
       autoLoadEntities: true
     }),
+    ScheduleModule.forRoot(),
     AuthModule, 
-    UserModule, GameModule],
+    UserModule, GameModule, DecksModule],
   controllers: [AppController],
   providers: [AppService,
     {
