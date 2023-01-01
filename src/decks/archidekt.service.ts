@@ -25,7 +25,7 @@ export class ArchidektService {
           }
         }).pipe(
           catchError((error: AxiosError) => {
-            console.log(error.response);
+            console.log(error);
             throw 'An error happened!';
           }),
       )
