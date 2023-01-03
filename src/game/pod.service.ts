@@ -18,7 +18,7 @@ export class PodService {
   getPodByUserId(userId: number) {
     return Pod.createQueryBuilder('pod')
       .leftJoinAndSelect('pod.players', 'player')
-      .leftJoinAndSelect('player.user', 'user')
+      .leftJoin('player.user', 'user')
       .where("user.id = :id", { id: userId })
       .getMany();
   }
