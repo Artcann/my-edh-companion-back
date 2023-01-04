@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
 import { RoleEnum } from "src/auth/entities/enum/role.enum";
 import { Role } from "src/auth/entities/role.entity";
 import { CreateUserDto } from "./dto/create-user.dto";
@@ -9,18 +9,27 @@ import { User } from "./entities/user.entity";
 export class UserService {
   
   async create(createUserDto: CreateUserDto) {
+    const user = await User.findOneBy({ email: createUserDto.email })
+    
+    if (user) {
+      throw new HttpException(
+        "This user already exists",
+        HttpStatus.BAD_REQUEST
+      )
+    }
+
     createUserDto.email = createUserDto.email.toLocaleLowerCase();
 
-    const user = User.create<User>(createUserDto);
+    const new_user = User.create<User>(createUserDto);
 
     const baseRole = await Role.findOneBy({roleLabel : RoleEnum.User});
     
-    user.role = [baseRole];
+    new_user.role = [baseRole];
 
-    await user.save();
+    await new_user.save();
 
-    delete user.password;
-    return user;
+    delete new_user.password;
+    return new_user;
   }
 
   async findOneById(id: number) {
