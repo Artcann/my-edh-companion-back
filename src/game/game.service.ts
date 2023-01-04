@@ -48,9 +48,10 @@ export class GameService {
   async getRecentGames(userId: number, limit: number) {
     return Game.createQueryBuilder("game")
     .leftJoinAndSelect("game.players", "deck")
-    .leftJoin("deck.player_owner", "player")
+    .leftJoinAndSelect("deck.player_owner", "player")
     .leftJoin("deck.user_owner", "user2")
     .leftJoin("player.user", "user")
+    .addSelect(["user2.id", "user2.username"])
     .where("user.id = :id OR user2.id = :id", { id: userId })
     .orderBy("game.date", "ASC")
     .limit(limit)
