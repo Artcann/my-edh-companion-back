@@ -44,4 +44,16 @@ export class GameService {
 
     return game.save();
   }
+
+  async getRecentGames(userId: number, limit: number) {
+    return Game.createQueryBuilder("game")
+    .leftJoinAndSelect("game.players", "deck")
+    .leftJoin("deck.player_owner", "player")
+    .leftJoin("deck.user_owner", "user2")
+    .leftJoin("player.user", "user")
+    .where("user.id = :id OR user2.id = :id", { id: userId })
+    .orderBy("game.date", "ASC")
+    .limit(limit)
+    .getMany();
+  }
 }

@@ -1,5 +1,5 @@
 import { GameService } from './game.service';
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
 import { CreateGameDto } from './dto/create-game.dto';
 import { query } from 'express';
 
@@ -9,6 +9,11 @@ export class GameController {
     private gameService: GameService
   ) { }
   
+  @Get('recent')
+  async getRecent(@Req() req) {
+    return this.gameService.getRecentGames(req.user.id, 20)
+  }
+
   @Post('create')
   async create(@Body() createGameDto: CreateGameDto) {
     return this.gameService.create(createGameDto);

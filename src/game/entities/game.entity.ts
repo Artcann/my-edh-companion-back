@@ -18,14 +18,14 @@ export class Game extends BaseEntity {
   @Column({ type: "timestamp" })
   date: Date
 
-  @ManyToOne(() => Pod, pod => pod.games)
+  @ManyToOne(() => Pod, pod => pod.games, {cascade: true})
   pod: Pod
 
-  @ManyToMany(() => Deck, deck => deck.games)
+  @ManyToMany(() => Deck, deck => deck.games, {cascade: true})
   @JoinTable()
   players: Deck[]
 
-  @OneToMany(() => Deck, deck => deck.wins)
+  @OneToMany(() => Deck, deck => deck.wins, {cascade: true})
   winner: Deck
 
   @BeforeInsert()
