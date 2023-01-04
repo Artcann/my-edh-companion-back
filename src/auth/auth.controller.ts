@@ -78,8 +78,11 @@ export class AuthController {
   @Public()
   @UseGuards(LocalAuthGuard)
   async login(@Request() req) {
-    return await this.authService.login(req.user);
+    const tokens = await this.authService.login(req.user);
 
+    this.authService.updateRefreshToken(req.user.id, tokens.refreshToken)
+
+    return tokens;
   }
 
   @Public()
