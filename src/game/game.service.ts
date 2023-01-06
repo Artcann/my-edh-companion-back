@@ -48,6 +48,7 @@ export class GameService {
   async getRecentGames(userId: number, limit: number) {
     return Game.createQueryBuilder("game")
     .leftJoinAndSelect("game.players", "deck")
+    .leftJoinAndSelect("game.winner", "winner")
     .leftJoinAndSelect("deck.player_owner", "player")
     .leftJoin("deck.user_owner", "user2")
     .leftJoin("player.user", "user")
