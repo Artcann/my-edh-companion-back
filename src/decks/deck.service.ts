@@ -27,5 +27,12 @@ export class DeckService {
       .leftJoin("player.user", "user")
       .where("user.id = :id OR user2.id = :id", { id: userId })
       .getMany();
-  }  
+  }
+  
+  async getDecksOfPlayer(playerId: number) {
+    return Deck.createQueryBuilder("deck")
+      .leftJoin("deck.player_owner", "player")
+      .where("player.id = :id", {id: playerId})
+      .getMany()
+  }
 }

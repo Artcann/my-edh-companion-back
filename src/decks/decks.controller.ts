@@ -1,15 +1,17 @@
 import { ArchidektLoginDto } from './dto/archidekt-login.dto';
-import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { ArchidektService } from './archidekt.service';
 import { User } from 'src/user/entities/user.entity';
 import { DeckService } from './deck.service';
 import { CreateDeckDto } from './dto/create-deck.dto';
+import { UserService } from 'src/user/user.service';
 
 @Controller("deck")
 export class DecksController {
   constructor(
     private archidektService: ArchidektService,
-    private deckService: DeckService
+    private deckService: DeckService,
+    private userService: UserService
   ) { }
 
   @Post('create')
@@ -20,6 +22,12 @@ export class DecksController {
   @Get('me')
   async getAllDeckOfCurrentUser(@Req() req) {
     return this.deckService.getDecksOfUser(req.user.id);
+  }
+
+  @Get('player/:playerId')
+  async getAllDeckOfSpecifiedPlayer(@Param("playerId") playerId: number) {
+    const user = await this.userService.findOneByPlayerId(playerId)
+    return this.deckService.getDecksOfUser(user.id)
   }
   
   @Post("archidekt/login")
