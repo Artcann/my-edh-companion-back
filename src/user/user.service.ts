@@ -38,6 +38,13 @@ export class UserService {
     });
   }
 
+  async findOneByPlayerId(playerId: number) {
+    return User.createQueryBuilder("user")
+    .leftJoin("user.players", "players")
+    .where("players.id = :id", {id: playerId})
+    .getOne()
+  }
+
   async findOne(email: string): Promise<User | undefined> {
     return User.findOneBy({
       email: email.toLocaleLowerCase()
