@@ -23,8 +23,15 @@ export class PodController {
     return this.podService.getPodByUserId(userId);
   }
 
+  @Get("all")
+  async getAllPods() {
+    return this.podService.findAll()
+  }
+
   @Get(':podId')
   async getAllPlayerOfPod(@Param('podId') podId: number) {
     return this.podService.findOne(podId)
   }
+
+
 }
