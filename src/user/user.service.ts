@@ -58,6 +58,7 @@ export class UserService {
   async update(id: number, updateUserDto: UpdateUserDto) {
     const user = await User.findOneBy({ id: id});
     Object.assign(user, updateUserDto);
+
     return user.save();
   }
 }

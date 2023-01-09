@@ -26,11 +26,8 @@ export class User extends BaseEntity {
     @Column({ nullable: true })
     archidektId: number;
 
-    @Column({ nullable: true })
-    archidektRefreshToken: string;
-
-    @Column({ nullable: true })
-    archidektAccessToken: string;
+    @Column({nullable: true})
+    archidektUsername: string
 
     @OneToMany(() => Deck, deck => deck.user_owner, {nullable: true, cascade: true})
     archidekt_decks: Deck[]
