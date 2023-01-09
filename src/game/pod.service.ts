@@ -11,15 +11,27 @@ export class PodService {
     return pod.save();
   }
 
-  findOne(id: number) {
+  async findAll() {
+    return Pod.find()
+  }
+
+  async findOne(id: number) {
     return Pod.findOneBy({ id: id });
   }
 
-  getPodByUserId(userId: number) {
+  async getPodByUserId(userId: number) {
+    const pods = await Pod.createQueryBuilder('pod')
+      .leftJoin('pod.players', 'player')
+      .leftJoin('player.user', 'user')
+      .where("player.user.id = :id", { id: userId })
+      .select("pod.id")
+      .getMany();
+    
+    const podsId = pods.map(pod => pod.id)
+
     return Pod.createQueryBuilder('pod')
       .leftJoinAndSelect('pod.players', 'player')
-      .leftJoin('player.user', 'user')
-      .where("user.id = :id", { id: userId })
-      .getMany();
+      .where("pod.id = ANY(:podsId)", { podsId: podsId })
+      .getMany()
   }
 }
