@@ -41,6 +41,6 @@ export class PlayerController {
 
   @Get(":id")
   async getPlayerById(@Param("id") playerId: number) {
-    return this.playerService.findByUserId(playerId);
+    return this.playerService.findOne(playerId);
   }
 }
