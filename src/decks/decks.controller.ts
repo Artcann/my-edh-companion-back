@@ -53,4 +53,9 @@ export class DecksController {
     return this.archidektService.fetchAndSaveAllDecks(user);
   }
 
+  @Get("stats/:id")
+  async getDeckStats(@Param("id") archidektId: string) {
+    return this.archidektService.fetchDeckStats(archidektId);
+  }
+
 }

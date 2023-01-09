@@ -46,14 +46,22 @@ export class GameService {
   }
 
   async getRecentGames(userId: number, limit: number) {
+    const games = await Game.createQueryBuilder("game")
+      .leftJoin("game.players", "deck")
+      .leftJoin("game.winner", "winner")
+      .leftJoin("deck.user_owner", "user2")
+      .leftJoin("deck.player_owner", "player")
+      .leftJoin("player.user", "user")
+      .where("user.id = :id OR user2.id = :id", { id: userId })
+      .getMany()
+
+    const gamesId = games.map(game => game.id)
+
     return Game.createQueryBuilder("game")
     .leftJoinAndSelect("game.players", "deck")
     .leftJoinAndSelect("game.winner", "winner")
     .leftJoinAndSelect("deck.player_owner", "player")
-    .leftJoin("deck.user_owner", "user2")
-    .leftJoin("player.user", "user")
-    .addSelect(["user2.id", "user2.username"])
-    .where("user.id = :id OR user2.id = :id", { id: userId })
+    .where("game.id = ANY(:gamesId)", { gamesId: gamesId })
     .orderBy("game.date", "ASC")
     .limit(limit)
     .getMany();

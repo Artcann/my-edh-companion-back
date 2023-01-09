@@ -6,6 +6,7 @@ import {AxiosError} from "axios"
 import { Deck } from 'src/decks/entities/deck.entity';
 import { User } from 'src/user/entities/user.entity';
 import { ConstraintMetadata } from 'class-validator/types/metadata/ConstraintMetadata';
+import { DeckStatsDTO } from './dto/deck-stats.dto';
 
 @Injectable()
 export class ArchidektService {
@@ -122,6 +123,60 @@ export class ArchidektService {
 
     user.archidekt_decks = decks;
     user.save()
+  }
+
+  async fetchDeckStats(archidektId: string) {
+    const deckStats: DeckStatsDTO = {
+      colors: {
+        red: 0,
+        blue: 0,
+        green: 0,
+        black: 0,
+        white: 0
+      },
+      ccm: 0,
+      salt: 0,
+      total_cards: 0
+    }
+
+    const {data} = await firstValueFrom(
+      this.http.get(process.env.ARCHIDEKT_BASE_URL + "decks/" + archidektId + "/")
+      .pipe(
+        catchError((error: AxiosError) => {
+          console.log(error.response.data);
+          throw 'An error happened!';
+      }))
+    )
+
+    data.cards.map(card => {
+      deckStats.ccm += card.card.oracleCard.cmc * card.quantity;
+      deckStats.salt += card.card.oracleCard.salt * card.quantity;
+      if(!card.categories.includes("Land")) {
+        deckStats.total_cards += card.quantity;
+      }
+      switch(true) {
+        case card.card.oracleCard.colors.includes("Red"):
+          deckStats.colors.red += 1 * card.quantity;
+          break;
+        case card.card.oracleCard.colors.includes("Blue"):
+          deckStats.colors.blue += 1 * card.quantity;
+          break;
+        case card.card.oracleCard.colors.includes("Green"):
+          deckStats.colors.green += 1 * card.quantity;
+          break;
+        case card.card.oracleCard.colors.includes("White"):
+          deckStats.colors.white += 1 * card.quantity;
+          break;
+        case card.card.oracleCard.colors.includes("Black"):
+          deckStats.colors.black += 1 * card.quantity;
+          break;
+      }
+    }
+    )
+
+    deckStats.ccm = Number((deckStats.ccm / deckStats.total_cards).toFixed(2))
+    
+    return deckStats;
   }
 
   /* async refreshToken(archidektRefresh: string, archidektAccess: string) {
