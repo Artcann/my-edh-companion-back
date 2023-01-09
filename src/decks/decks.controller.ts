@@ -30,23 +30,6 @@ export class DecksController {
     return this.deckService.getDecksOfUser(user.id)
   }
   
-  @Post("archidekt/login")
-  async loginArchidekt(@Body() archidektLoginDto: ArchidektLoginDto, @Req() req) {
-    const user = await User.findOneBy({
-      id: req.user.id
-    })
-
-    const tokens = await this.archidektService.login(archidektLoginDto.email, archidektLoginDto.password);
-
-    user.archidektAccessToken = tokens.access_token
-    user.archidektRefreshToken = tokens.refresh_token
-    user.archidektId = tokens.user.id
-
-    user.save()
-
-    return tokens
-  }
-
   @Get("archidekt/deck")
   async getDecksByUserId(@Req() req, @Query() query) {
     const user = await User.findOneBy({
@@ -57,14 +40,15 @@ export class DecksController {
       query.page = 1
     }
 
-    return this.archidektService.getDecksByUserId(user.archidektId, user.archidektAccessToken, query.page)
+    return this.archidektService.getDecksByUsername(user.archidektUsername, query.page)
   }
 
   @Get("archidekt/fetch/all")
   async fetchAndSaveAllDecks(@Req() req) {
-    const user = await User.findOneBy({
-      id: req.user.id
-    })
+    const user = await User.createQueryBuilder("user")
+      .leftJoinAndSelect("user.archidekt_decks", "decks")
+      .where("user.id = :id", {id: req.user.id})
+      .getOne()
 
     return this.archidektService.fetchAndSaveAllDecks(user);
   }

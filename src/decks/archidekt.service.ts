@@ -5,6 +5,7 @@ import { catchError, firstValueFrom } from 'rxjs';
 import {AxiosError} from "axios"
 import { Deck } from 'src/decks/entities/deck.entity';
 import { User } from 'src/user/entities/user.entity';
+import { ConstraintMetadata } from 'class-validator/types/metadata/ConstraintMetadata';
 
 @Injectable()
 export class ArchidektService {
@@ -34,6 +35,14 @@ export class ArchidektService {
     return data
   }
 
+  async getDecksByUsername(archidektUsername: string, page: number) {
+    const {data} = await firstValueFrom(
+      this.http.get(process.env.ARCHIDEKT_BASE_URL + `decks/?page=${page}&owner=${archidektUsername}&ownerexact=true`)
+    )
+
+    return data
+  }
+
   async getDecksByUserId(archidektId: number, accessToken: string, page: number) {
     const headersRequest = {
       'Authorization': `JWT ${accessToken}`,
@@ -55,24 +64,67 @@ export class ArchidektService {
 
   async fetchAndSaveAllDecks(user: User) {
     let page = 1;
-    const decks = [] as Array<Deck>;
+    const decks = user.archidekt_decks;
     let decksDTO: any;
 
     do {
-      decksDTO = await this.getDecksByUserId(user.archidektId, user.archidektAccessToken, page);
+      decksDTO = await this.getDecksByUsername(user.archidektUsername, page);
       page++;
       decksDTO.results.map(deckDTO => {
         deckDTO.archidektId = deckDTO.id
         delete deckDTO.id
       });
-      decks.push(...Deck.create<Deck>(decksDTO.results))
+      decksDTO.results.map(deck => {
+        if(decks.some(deck2 => deck2.archidektId.toString() === deck.archidektId.toString())) {
+          const deckToUpdate = decks.find(registeredDeck => deck.archidektId.toString() === registeredDeck.archidektId.toString())
+          deckToUpdate.name = deck.name
+          deckToUpdate.featured = deck.featured
+        } else {
+          const newDeck = Deck.create<Deck>(deck as Deck)
+          decks.push(newDeck)
+
+        }
+      })
     } while(decksDTO.next !== null);
+
+
+    this.fetchDeckName(decks, user)
 
     user.archidekt_decks = decks;
     return user.save();
   }
 
-  async refreshToken(archidektRefresh: string, archidektAccess: string) {
+  async fetchDeckName(decks: Deck[], user: User) {
+    await Promise.all(decks.map(async deck => {
+      const {data} = await firstValueFrom(
+        this.http.get(process.env.ARCHIDEKT_BASE_URL + "decks/" + deck.archidektId + "/")
+        .pipe(
+          catchError((error: AxiosError) => {
+            console.log(error.response.data);
+            throw 'An error happened!';
+        }))
+      )
+
+      const commanders = data.cards.filter(card => {
+        return card.categories.includes("Commander")
+      })
+
+
+      const commanderName: Array<any> = commanders.map(commander => commander.card.oracleCard.name)
+      if(commanderName.length > 1) {
+        deck.commander = commanderName.join(" and ")
+      } else {
+        deck.commander = commanderName[0]
+      }
+
+      await deck.save()
+    }))
+
+    user.archidekt_decks = decks;
+    user.save()
+  }
+
+  /* async refreshToken(archidektRefresh: string, archidektAccess: string) {
     const headersRequest = {
       'Authorization': `JWT ${archidektAccess}`,
     };
@@ -90,5 +142,5 @@ export class ArchidektService {
     )
 
     return data.access_token
-  }
+  } */
 }
