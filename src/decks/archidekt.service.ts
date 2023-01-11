@@ -81,7 +81,7 @@ export class ArchidektService {
           try {
             if(decks.some(deck2 => {
               try {
-                deck2.archidektId.toString() === deck.archidektId.toString()
+                return deck2.archidektId.toString() === deck.archidektId.toString()
               } catch(e) {
                 return false
               }
@@ -101,6 +101,8 @@ export class ArchidektService {
         })
       
     } while(decksDTO.next !== null);
+
+    console.log(user.archidekt_decks, decks)
 
     this.fetchDeckName(decks, user)
 
