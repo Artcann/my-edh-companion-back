@@ -149,10 +149,13 @@ export class ArchidektService {
     )
 
     data.cards.map(card => {
-      deckStats.ccm += card.card.oracleCard.cmc * card.quantity;
-      deckStats.salt += card.card.oracleCard.salt * card.quantity;
-      if(!card.categories.includes("Land")) {
-        deckStats.total_cards += card.quantity;
+      const whitelist = ["Maybeboard", "Sideboard"]
+      if(!card.categories.some(category => whitelist.includes(category))) {
+        if(!card.categories.includes("Land")) {
+          deckStats.total_cards += card.quantity;
+          deckStats.ccm += card.card.oracleCard.cmc * card.quantity;
+        }
+        deckStats.salt += card.card.oracleCard.salt * card.quantity;
       }
       switch(true) {
         case card.card.oracleCard.colors.includes("Red"):
