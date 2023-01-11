@@ -173,23 +173,27 @@ export class ArchidektService {
           deckStats.ccm += card.card.oracleCard.cmc * card.quantity;
         }
         deckStats.salt += card.card.oracleCard.salt * card.quantity;
+
+        if (card.card.oracleCard.colors.includes("Red")) deckStats.colors.red += 1 * card.quantity;
+
+        if (card.card.oracleCard.colors.includes("Blue")) deckStats.colors.blue += 1 * card.quantity;
+
+        if (card.card.oracleCard.colors.includes("Green")) deckStats.colors.green += 1 * card.quantity;
+
+        if (card.card.oracleCard.colors.includes("White")) deckStats.colors.white += 1 * card.quantity;
+
+        if (card.card.oracleCard.colors.includes("Black")) deckStats.colors.black += 1 * card.quantity;
+            
+
+        
+        console.log(deckStats, card.card.oracleCard)
       }
-      switch(true) {
-        case card.card.oracleCard.colors.includes("Red"):
-          deckStats.colors.red += 1 * card.quantity;
-        case card.card.oracleCard.colors.includes("Blue"):
-          deckStats.colors.blue += 1 * card.quantity;
-        case card.card.oracleCard.colors.includes("Green"):
-          deckStats.colors.green += 1 * card.quantity;
-        case card.card.oracleCard.colors.includes("White"):
-          deckStats.colors.white += 1 * card.quantity;
-        case card.card.oracleCard.colors.includes("Black"):
-          deckStats.colors.black += 1 * card.quantity;
-      }
+      
     }
     )
 
     deckStats.ccm = Number((deckStats.ccm / deckStats.total_cards).toFixed(2))
+    deckStats.salt = Number(deckStats.salt.toFixed(2))
     
     return deckStats;
   }
