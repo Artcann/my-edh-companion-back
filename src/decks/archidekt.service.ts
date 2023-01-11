@@ -75,25 +75,32 @@ export class ArchidektService {
         deckDTO.archidektId = deckDTO.id
         delete deckDTO.id
       });
-      try {
+      
         decksDTO.results.map(deck => {
-          if(decks.some(deck2 => deck2.archidektId.toString() === deck.archidektId.toString())) {
-            const deckToUpdate = decks.find(registeredDeck => deck.archidektId.toString() === registeredDeck.archidektId.toString())
-            deckToUpdate.name = deck.name
-            deckToUpdate.featured = deck.featured
-          } else {
-            const newDeck = Deck.create<Deck>(deck as Deck)
-            decks.push(newDeck)
-  
+          
+          try {
+            if(decks.some(deck2 => {
+              try {
+                deck2.archidektId.toString() === deck.archidektId.toString()
+              } catch(e) {
+                return false
+              }
+            })) {
+              const deckToUpdate = decks.find(registeredDeck => deck.archidektId.toString() === registeredDeck.archidektId.toString())
+              deckToUpdate.name = deck.name
+              deckToUpdate.featured = deck.featured
+            } else {
+              const newDeck = Deck.create<Deck>(deck as Deck)
+              decks.push(newDeck)
+              
+            }
+          } catch(e) {
+            console.log(e.message)
           }
+          
         })
-      } catch (e) {
-        console.log(e.message)
-      }
       
     } while(decksDTO.next !== null);
-
-    console.log(user.archidekt_decks, decks)
 
     this.fetchDeckName(decks, user)
 
