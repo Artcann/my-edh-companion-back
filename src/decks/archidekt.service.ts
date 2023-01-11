@@ -177,19 +177,14 @@ export class ArchidektService {
       switch(true) {
         case card.card.oracleCard.colors.includes("Red"):
           deckStats.colors.red += 1 * card.quantity;
-          break;
         case card.card.oracleCard.colors.includes("Blue"):
           deckStats.colors.blue += 1 * card.quantity;
-          break;
         case card.card.oracleCard.colors.includes("Green"):
           deckStats.colors.green += 1 * card.quantity;
-          break;
         case card.card.oracleCard.colors.includes("White"):
           deckStats.colors.white += 1 * card.quantity;
-          break;
         case card.card.oracleCard.colors.includes("Black"):
           deckStats.colors.black += 1 * card.quantity;
-          break;
       }
     }
     )
