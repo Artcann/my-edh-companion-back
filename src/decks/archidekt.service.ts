@@ -75,19 +75,25 @@ export class ArchidektService {
         deckDTO.archidektId = deckDTO.id
         delete deckDTO.id
       });
-      decksDTO.results.map(deck => {
-        if(decks.some(deck2 => deck2.archidektId.toString() === deck.archidektId.toString())) {
-          const deckToUpdate = decks.find(registeredDeck => deck.archidektId.toString() === registeredDeck.archidektId.toString())
-          deckToUpdate.name = deck.name
-          deckToUpdate.featured = deck.featured
-        } else {
-          const newDeck = Deck.create<Deck>(deck as Deck)
-          decks.push(newDeck)
-
-        }
-      })
+      try {
+        decksDTO.results.map(deck => {
+          if(decks.some(deck2 => deck2.archidektId.toString() === deck.archidektId.toString())) {
+            const deckToUpdate = decks.find(registeredDeck => deck.archidektId.toString() === registeredDeck.archidektId.toString())
+            deckToUpdate.name = deck.name
+            deckToUpdate.featured = deck.featured
+          } else {
+            const newDeck = Deck.create<Deck>(deck as Deck)
+            decks.push(newDeck)
+  
+          }
+        })
+      } catch (e) {
+        console.log(e.message)
+      }
+      
     } while(decksDTO.next !== null);
 
+    console.log(user.archidekt_decks, decks)
 
     this.fetchDeckName(decks, user)
 
@@ -97,28 +103,30 @@ export class ArchidektService {
 
   async fetchDeckName(decks: Deck[], user: User) {
     await Promise.all(decks.map(async deck => {
-      const {data} = await firstValueFrom(
-        this.http.get(process.env.ARCHIDEKT_BASE_URL + "decks/" + deck.archidektId + "/")
-        .pipe(
-          catchError((error: AxiosError) => {
-            console.log(error.response.data);
-            throw 'An error happened!';
-        }))
-      )
-
-      const commanders = data.cards.filter(card => {
-        return card.categories.includes("Commander")
-      })
-
-
-      const commanderName: Array<any> = commanders.map(commander => commander.card.oracleCard.name)
-      if(commanderName.length > 1) {
-        deck.commander = commanderName.join(" and ")
-      } else {
-        deck.commander = commanderName[0]
+      if(deck.archidektId) {
+        const {data} = await firstValueFrom(
+          this.http.get(process.env.ARCHIDEKT_BASE_URL + "decks/" + deck.archidektId + "/")
+          .pipe(
+            catchError((error: AxiosError) => {
+              console.log(error.response.data);
+              throw 'An error happened!';
+          }))
+        )
+  
+        const commanders = data.cards.filter(card => {
+          return card.categories.includes("Commander")
+        })
+  
+  
+        const commanderName: Array<any> = commanders.map(commander => commander.card.oracleCard.name)
+        if(commanderName.length > 1) {
+          deck.commander = commanderName.join(" and ")
+        } else {
+          deck.commander = commanderName[0]
+        }
+  
+        await deck.save()
       }
-
-      await deck.save()
     }))
 
     user.archidekt_decks = decks;
