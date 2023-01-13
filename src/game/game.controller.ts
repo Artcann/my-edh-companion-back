@@ -1,5 +1,5 @@
 import { GameService } from './game.service';
-import { Body, Controller, Get, Post, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Req } from '@nestjs/common';
 import { CreateGameDto } from './dto/create-game.dto';
 import { query } from 'express';
 
@@ -27,5 +27,10 @@ export class GameController {
   @Get('setWinner')
   async setWinnerToGame(@Query() query) {
     return this.gameService.setWinnerToGame(query.deckId, query.gameId);
+  }
+
+  @Get('pod/:id')
+  async getGameByPodId(@Param("id") podId: number) {
+    return this.gameService.getGamesByPodId(podId)
   }
 }

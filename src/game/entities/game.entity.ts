@@ -25,7 +25,7 @@ export class Game extends BaseEntity {
   @JoinTable()
   players: Deck[]
 
-  @ManyToOne(() => Deck, deck => deck.wins, {cascade: true})
+  @ManyToOne(() => Deck, deck => deck.wins)
   winner: Deck
 
   @BeforeInsert()
