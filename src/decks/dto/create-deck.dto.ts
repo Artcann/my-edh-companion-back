@@ -3,5 +3,7 @@ export class CreateDeckDto {
 
   commander: string
 
-  ownerId: number
+  playerOwnerId?: number
+
+  userOwnerId?: number
 }

@@ -2,20 +2,26 @@ import { Injectable } from "@nestjs/common";
 import { CreateDeckDto } from "./dto/create-deck.dto";
 import { Deck } from "./entities/deck.entity";
 import { Player } from "../game/entities/player.entity";
+import { User } from "src/user/entities/user.entity";
 
 @Injectable()
 export class DeckService {
   async create(createDeckDto: CreateDeckDto) {
     const deck = Deck.create<Deck>(createDeckDto);
-    const owner = await Player.findOneBy({ id: createDeckDto.ownerId });
-/*     if (owner.decks === undefined) {
-      owner.decks = [];
+    if(createDeckDto.playerOwnerId) {
+      const owner = await Player.findOneBy({ id: createDeckDto.playerOwnerId });
+      if (owner.decks === undefined) {
+        owner.decks = [];
+      }
+  
+      owner.decks.push(deck);
+      owner.save();
+      deck.player_owner = owner;
+    } 
+    if(createDeckDto.userOwnerId) {
+      const owner = await User.findOneBy({ id: createDeckDto.userOwnerId });
+      deck.user_owner = owner
     }
-
-    owner.decks.push(deck);
-    owner.save(); */
-
-    deck.player_owner = owner;
 
     return deck.save();
   }

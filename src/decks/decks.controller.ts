@@ -27,7 +27,12 @@ export class DecksController {
   @Get('player/:playerId')
   async getAllDeckOfSpecifiedPlayer(@Param("playerId") playerId: number) {
     const user = await this.userService.findOneByPlayerId(playerId)
-    return this.deckService.getDecksOfUser(user.id)
+    if(!user) {
+      return this.deckService.getDecksOfPlayer(playerId)
+    } else {
+      return this.deckService.getDecksOfUser(user.id)
+    }
+    
   }
   
   @Get("archidekt/deck")

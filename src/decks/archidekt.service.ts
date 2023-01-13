@@ -75,19 +75,34 @@ export class ArchidektService {
         deckDTO.archidektId = deckDTO.id
         delete deckDTO.id
       });
-      decksDTO.results.map(deck => {
-        if(decks.some(deck2 => deck2.archidektId.toString() === deck.archidektId.toString())) {
-          const deckToUpdate = decks.find(registeredDeck => deck.archidektId.toString() === registeredDeck.archidektId.toString())
-          deckToUpdate.name = deck.name
-          deckToUpdate.featured = deck.featured
-        } else {
-          const newDeck = Deck.create<Deck>(deck as Deck)
-          decks.push(newDeck)
-
-        }
-      })
+      
+        decksDTO.results.map(deck => {
+          
+          try {
+            if(decks.some(deck2 => {
+              try {
+                return deck2.archidektId.toString() === deck.archidektId.toString()
+              } catch(e) {
+                return false
+              }
+            })) {
+              const deckToUpdate = decks.find(registeredDeck => deck.archidektId.toString() === registeredDeck.archidektId.toString())
+              deckToUpdate.name = deck.name
+              deckToUpdate.featured = deck.featured
+            } else {
+              const newDeck = Deck.create<Deck>(deck as Deck)
+              decks.push(newDeck)
+              
+            }
+          } catch(e) {
+            console.log(e.message)
+          }
+          
+        })
+      
     } while(decksDTO.next !== null);
 
+    console.log(user.archidekt_decks, decks)
 
     this.fetchDeckName(decks, user)
 
@@ -97,28 +112,30 @@ export class ArchidektService {
 
   async fetchDeckName(decks: Deck[], user: User) {
     await Promise.all(decks.map(async deck => {
-      const {data} = await firstValueFrom(
-        this.http.get(process.env.ARCHIDEKT_BASE_URL + "decks/" + deck.archidektId + "/")
-        .pipe(
-          catchError((error: AxiosError) => {
-            console.log(error.response.data);
-            throw 'An error happened!';
-        }))
-      )
-
-      const commanders = data.cards.filter(card => {
-        return card.categories.includes("Commander")
-      })
-
-
-      const commanderName: Array<any> = commanders.map(commander => commander.card.oracleCard.name)
-      if(commanderName.length > 1) {
-        deck.commander = commanderName.join(" and ")
-      } else {
-        deck.commander = commanderName[0]
+      if(deck.archidektId) {
+        const {data} = await firstValueFrom(
+          this.http.get(process.env.ARCHIDEKT_BASE_URL + "decks/" + deck.archidektId + "/")
+          .pipe(
+            catchError((error: AxiosError) => {
+              console.log(error.response.data);
+              throw 'An error happened!';
+          }))
+        )
+  
+        const commanders = data.cards.filter(card => {
+          return card.categories.includes("Commander")
+        })
+  
+  
+        const commanderName: Array<any> = commanders.map(commander => commander.card.oracleCard.name)
+        if(commanderName.length > 1) {
+          deck.commander = commanderName.join(" and ")
+        } else {
+          deck.commander = commanderName[0]
+        }
+  
+        await deck.save()
       }
-
-      await deck.save()
     }))
 
     user.archidekt_decks = decks;
@@ -149,32 +166,34 @@ export class ArchidektService {
     )
 
     data.cards.map(card => {
-      deckStats.ccm += card.card.oracleCard.cmc * card.quantity;
-      deckStats.salt += card.card.oracleCard.salt * card.quantity;
-      if(!card.categories.includes("Land")) {
-        deckStats.total_cards += card.quantity;
+      const whitelist = ["Maybeboard", "Sideboard"]
+      if(!card.categories.some(category => whitelist.includes(category))) {
+        if(!card.categories.includes("Land")) {
+          deckStats.total_cards += card.quantity;
+          deckStats.ccm += card.card.oracleCard.cmc * card.quantity;
+        }
+        deckStats.salt += card.card.oracleCard.salt * card.quantity;
+
+        if (card.card.oracleCard.colors.includes("Red")) deckStats.colors.red += 1 * card.quantity;
+
+        if (card.card.oracleCard.colors.includes("Blue")) deckStats.colors.blue += 1 * card.quantity;
+
+        if (card.card.oracleCard.colors.includes("Green")) deckStats.colors.green += 1 * card.quantity;
+
+        if (card.card.oracleCard.colors.includes("White")) deckStats.colors.white += 1 * card.quantity;
+
+        if (card.card.oracleCard.colors.includes("Black")) deckStats.colors.black += 1 * card.quantity;
+            
+
+        
+        console.log(deckStats, card.card.oracleCard)
       }
-      switch(true) {
-        case card.card.oracleCard.colors.includes("Red"):
-          deckStats.colors.red += 1 * card.quantity;
-          break;
-        case card.card.oracleCard.colors.includes("Blue"):
-          deckStats.colors.blue += 1 * card.quantity;
-          break;
-        case card.card.oracleCard.colors.includes("Green"):
-          deckStats.colors.green += 1 * card.quantity;
-          break;
-        case card.card.oracleCard.colors.includes("White"):
-          deckStats.colors.white += 1 * card.quantity;
-          break;
-        case card.card.oracleCard.colors.includes("Black"):
-          deckStats.colors.black += 1 * card.quantity;
-          break;
-      }
+      
     }
     )
 
     deckStats.ccm = Number((deckStats.ccm / deckStats.total_cards).toFixed(2))
+    deckStats.salt = Number(deckStats.salt.toFixed(2))
     
     return deckStats;
   }
