@@ -40,9 +40,13 @@ export class GameService {
     const deck = await Deck.findOneBy({ id: deckId });
     const game = await Game.findOneBy({ id: gameId });
 
-    game.winner = deck;
+    if(deck.wins === undefined) {
+      deck.wins = []
+    }
 
-    return game.save();
+    deck.wins.push(game)
+
+    return deck.save();
   }
 
   async getRecentGames(userId: number, limit: number) {
@@ -67,6 +71,30 @@ export class GameService {
     .where("game.id = ANY(:gamesId)", { gamesId: gamesId })
     .orderBy("game.date", "ASC")
     .limit(limit)
+    .getMany();
+  }
+
+  async getGamesByPodId(podId: number) {
+    const games = await Game.createQueryBuilder("game")
+      .leftJoin("game.players", "deck")
+      .leftJoin("game.winner", "winner")
+      .leftJoin("deck.user_owner", "user2")
+      .leftJoin("deck.player_owner", "player")
+      .leftJoin("game.pod", "pod")
+      .where("pod.id = :id", { id: podId })
+      .getMany()
+
+      const gamesId = games.map(game => game.id)
+
+    return Game.createQueryBuilder("game")
+    .leftJoinAndSelect("game.players", "deck")
+    .leftJoinAndSelect("game.winner", "winner")
+    .leftJoinAndSelect("deck.player_owner", "player")
+    .leftJoin("deck.user_owner", "user")
+    .leftJoin("player.user", "user2")
+    .addSelect(["user2.id", "user2.username", "user.id", "user.username"])
+    .where("game.id = ANY(:gamesId)", { gamesId: gamesId })
+    .orderBy("game.date", "ASC")
     .getMany();
   }
 }

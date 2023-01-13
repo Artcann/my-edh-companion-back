@@ -29,7 +29,7 @@ export class Deck extends BaseEntity {
   @ManyToOne(() => User, user => user.archidekt_decks, {nullable: true})
   user_owner: User
 
-  @OneToMany(() => Game, game => game.winner)
+  @OneToMany(() => Game, game => game.winner, {cascade: true, eager: true})
   wins: Game[]
 
   @ManyToMany(() => Game, game => game.players, {eager: true})

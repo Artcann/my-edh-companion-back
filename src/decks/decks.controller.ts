@@ -63,4 +63,9 @@ export class DecksController {
     return this.archidektService.fetchDeckStats(archidektId);
   }
 
+  @Get("winrates/:id")
+  async getDeckWinrate(@Param("id") deckId: number, @Query() query) {
+    return this.deckService.getWinrate(deckId, query.podId, query.opponentDeckId, query.opponentId)
+  }
+
 }
