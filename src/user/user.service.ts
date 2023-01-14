@@ -97,6 +97,8 @@ export class UserService {
     .leftJoinAndSelect("decks.games", "games")
     .where("user.id = :id", {id: userId})
     .getOne()
+
+    decks.push(...user.archidekt_decks);
     
     console.log(user.players)
 
