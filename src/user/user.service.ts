@@ -95,12 +95,12 @@ export class UserService {
     .leftJoinAndSelect("players.decks", "decks")
     .leftJoinAndSelect("players.pod", "pod")
     .leftJoinAndSelect("decks.games", "games")
+    .leftJoinAndSelect("user.archidekt_decks", "archidekt")
     .where("user.id = :id", {id: userId})
     .getOne()
 
-    decks.push(...user.archidekt_decks);
-    
-    console.log(user.players)
+
+    console.log(decks, user)
 
     stats.number_of_decks = user.players.reduce((total, current) => total + current.decks.length, 0)
     stats.number_of_games = user.players.reduce((total, current) => total + current.decks.reduce((total, current) => total + current.games.length, 0), 0)
@@ -120,13 +120,15 @@ export class UserService {
     stats.winrate = totalWonGames / totalPlayedGames
 
     await Promise.all(decks.map(async deck => {
-      const deckStats = await this.archidektService.fetchDeckStats(deck.archidektId)
-      stats.ccm += deckStats.ccm
-      stats.salt += deckStats.salt
-      stats.total_cards += deckStats.total_cards
-      Object.keys(stats.colors).forEach(key => {
-        stats.colors[key] += deckStats.colors[key]
-      })
+      if(deck.archidektId !== null) {
+        const deckStats = await this.archidektService.fetchDeckStats(deck.archidektId)
+        stats.ccm += deckStats.ccm
+        stats.salt += deckStats.salt
+        stats.total_cards += deckStats.total_cards
+        Object.keys(stats.colors).forEach(key => {
+          stats.colors[key] += deckStats.colors[key]
+        }
+      )}
     }))
 
     stats.ccm = Number((stats.ccm / decks.length).toFixed(2))
