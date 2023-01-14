@@ -99,9 +99,6 @@ export class UserService {
     .where("user.id = :id", {id: userId})
     .getOne()
 
-
-    console.log(decks, user)
-
     stats.number_of_decks = user.players.reduce((total, current) => total + current.decks.length, 0)
     stats.number_of_games = user.players.reduce((total, current) => total + current.decks.reduce((total, current) => total + current.games.length, 0), 0)
     stats.number_of_pods = user.players.map(player => player.pod).filter((value, index, self) => self.findIndex(pod => pod.id === value.id) === index).length
