@@ -5,13 +5,13 @@ import { User } from 'src/user/entities/user.entity';
 import { DeckService } from './deck.service';
 import { CreateDeckDto } from './dto/create-deck.dto';
 import { UserService } from 'src/user/user.service';
+import { forwardRef } from '@nestjs/common/utils';
 
 @Controller("deck")
 export class DecksController {
   constructor(
     private archidektService: ArchidektService,
     private deckService: DeckService,
-    private userService: UserService
   ) { }
 
   @Post('create')
@@ -26,13 +26,7 @@ export class DecksController {
 
   @Get('player/:playerId')
   async getAllDeckOfSpecifiedPlayer(@Param("playerId") playerId: number) {
-    const user = await this.userService.findOneByPlayerId(playerId)
-    if(!user) {
-      return this.deckService.getDecksOfPlayer(playerId)
-    } else {
-      return this.deckService.getDecksOfUser(user.id)
-    }
-    
+    return this.deckService.getDecksOfSpecificPlayer(playerId)    
   }
   
   @Get("archidekt/deck")

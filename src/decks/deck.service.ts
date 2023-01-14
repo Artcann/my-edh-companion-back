@@ -1,13 +1,19 @@
-import { Injectable } from "@nestjs/common";
+import { forwardRef, Inject, Injectable } from "@nestjs/common";
 import { CreateDeckDto } from "./dto/create-deck.dto";
 import { Deck } from "./entities/deck.entity";
 import { Player } from "../game/entities/player.entity";
 import { User } from "src/user/entities/user.entity";
 import { DeckWinrateDTO } from "./dto/deck-winrate.dto";
 import { Pod } from "src/game/entities/pod.entity";
+import { UserService } from "src/user/user.service";
 
 @Injectable()
 export class DeckService {
+  constructor(
+    @Inject(forwardRef(() => UserService))
+    private userService: UserService
+  ) {}
+
   async create(createDeckDto: CreateDeckDto) {
     const deck = Deck.create<Deck>(createDeckDto);
     if(createDeckDto.playerOwnerId) {
@@ -42,6 +48,15 @@ export class DeckService {
       .leftJoin("deck.player_owner", "player")
       .where("player.id = :id", {id: playerId})
       .getMany()
+  }
+
+  async getDecksOfSpecificPlayer(playerId: number) {
+    const user = await this.userService.findOneByPlayerId(playerId)
+    if(!user) {
+      return this.getDecksOfPlayer(playerId)
+    } else {
+      return this.getDecksOfUser(user.id)
+    }
   }
 
   async getWinrate(deckId: number, podId: number = -1, opponentDeckId: number = -1, playerId: number = -1) {
