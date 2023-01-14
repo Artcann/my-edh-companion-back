@@ -121,9 +121,9 @@ export class UserService {
       )}
     }))
 
-    stats.ccm = Number((stats.ccm / decks.length).toFixed(2))
-    stats.salt = Number((stats.salt / decks.length).toFixed(2))
-    stats.total_cards = Number((stats.total_cards / decks.length).toFixed(2))
+    if(stats.ccm != 0) stats.ccm = Number((stats.ccm / decks.length).toFixed(2))
+    if(stats.salt != 0) stats.salt = Number((stats.salt / decks.length).toFixed(2))
+    if(stats.total_cards != 0) stats.total_cards = Number((stats.total_cards / decks.length).toFixed(2))
 
     return stats
   }

@@ -1,6 +1,5 @@
 import { Player } from 'src/game/entities/player.entity';
 import { Game } from './game.entity';
-import { Exclude } from "class-transformer";
 import { BaseEntity, Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()

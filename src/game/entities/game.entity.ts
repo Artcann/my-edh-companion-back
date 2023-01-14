@@ -31,6 +31,8 @@ export class Game extends BaseEntity {
   @BeforeInsert()
   async setExpirationDate() {
     let date = new Date();
+    date.setSeconds(0, 0);
     this.date = date;
+    
   }
 }

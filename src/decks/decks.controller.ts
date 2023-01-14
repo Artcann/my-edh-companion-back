@@ -49,7 +49,10 @@ export class DecksController {
       .where("user.id = :id", {id: req.user.id})
       .getOne()
 
-    return this.archidektService.fetchAndSaveAllDecks(user);
+    const decks = await this.archidektService.fetchAndSaveAllDecks(user);
+    this.archidektService.fetchDeckName(decks, user);
+
+    return decks
   }
 
   @Get("stats/:id")

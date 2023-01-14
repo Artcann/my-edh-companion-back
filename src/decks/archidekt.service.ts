@@ -102,12 +102,9 @@ export class ArchidektService {
       
     } while(decksDTO.next !== null);
 
-    console.log(user.archidekt_decks, decks)
-
-    this.fetchDeckName(decks, user)
-
     user.archidekt_decks = decks;
-    return user.save();
+    user.save()
+    return decks;
   }
 
   async fetchDeckName(decks: Deck[], user: User) {
@@ -134,12 +131,14 @@ export class ArchidektService {
           deck.commander = commanderName[0]
         }
   
-        await deck.save()
+        //await deck.save()
       }
     }))
 
+    console.log(decks)
+
     user.archidekt_decks = decks;
-    user.save()
+    await user.save()
   }
 
   async fetchDeckStats(archidektId: string) {
