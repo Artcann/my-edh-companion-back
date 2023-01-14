@@ -184,9 +184,6 @@ export class ArchidektService {
 
         if (card.card.oracleCard.colors.includes("Black")) deckStats.colors.black += 1 * card.quantity;
             
-
-        
-        console.log(deckStats, card.card.oracleCard)
       }
       
     }
@@ -194,7 +191,7 @@ export class ArchidektService {
 
     deckStats.ccm = Number((deckStats.ccm / deckStats.total_cards).toFixed(2))
     deckStats.salt = Number(deckStats.salt.toFixed(2))
-    
+
     return deckStats;
   }
 
