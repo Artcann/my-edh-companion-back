@@ -8,6 +8,7 @@ import { Role } from "src/auth/entities/role.entity";
 import { ArchidektService } from "src/decks/archidekt.service";
 import { DeckService } from "src/decks/deck.service";
 import { DeckStatsDTO } from "src/decks/dto/deck-stats.dto";
+import { PodService } from "src/game/pod.service";
 import { In } from "typeorm";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UpdateUserDto } from "./dto/update-user.dto";
@@ -19,7 +20,8 @@ export class UserService {
   constructor(
     @Inject(forwardRef(() => DeckService))
     private deckService: DeckService,
-    private archidektService: ArchidektService
+    private archidektService: ArchidektService,
+    private podService: PodService
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -77,7 +79,8 @@ export class UserService {
   }
 
   async getUserStats(userId: number) {
-    const decks = (await this.deckService.getDecksOfUser(userId)).filter(deck => deck.archidektId !== null)
+    const decks = await this.deckService.getDecksOfUser(userId)
+    const archidecks = decks.filter(deck => deck.archidektId !== null)
     
     let stats = {
       ccm: 0, 
@@ -89,34 +92,24 @@ export class UserService {
       number_of_pods: 0,
       winrate: 0
     }
+    
+    const pods = await this.podService.getPodByUserId(userId);
 
-    const user = await User.createQueryBuilder("user")
-    .leftJoinAndSelect("user.players", "players")
-    .leftJoinAndSelect("players.decks", "decks")
-    .leftJoinAndSelect("players.pod", "pod")
-    .leftJoinAndSelect("decks.games", "games")
-    .leftJoinAndSelect("user.archidekt_decks", "archidekt")
-    .where("user.id = :id", {id: userId})
-    .getOne()
-
-    stats.number_of_decks = user.players.reduce((total, current) => total + current.decks.length, 0)
-    stats.number_of_games = user.players.reduce((total, current) => total + current.decks.reduce((total, current) => total + current.games.length, 0), 0)
-    stats.number_of_pods = user.players.map(player => player.pod).filter((value, index, self) => self.findIndex(pod => pod.id === value.id) === index).length
+    stats.number_of_decks = decks.length
+    stats.number_of_games = decks.reduce((total, current) => total + current.games.length, 0)
+    stats.number_of_pods = pods.length
 
     let totalPlayedGames = 0;
     let totalWonGames = 0
 
-    user.players.map(player => {
-      totalPlayedGames += player.decks.reduce((total, current) => total + current.games.length, 0)
-      totalWonGames += player.decks.reduce((total, current) => {
-        if(current.wins !== undefined) return total + current.wins.length
-        else return 0
-      }, 0)
+    decks.map(deck => {
+      totalPlayedGames += deck.games.length
+      totalWonGames += deck.wins.length
     })
   
     stats.winrate = totalWonGames / totalPlayedGames
 
-    await Promise.all(decks.map(async deck => {
+    await Promise.all(archidecks.map(async deck => {
       if(deck.archidektId !== null) {
         const deckStats = await this.archidektService.fetchDeckStats(deck.archidektId)
         stats.ccm += deckStats.ccm

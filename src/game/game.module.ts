@@ -10,5 +10,6 @@ import { DecksModule } from 'src/decks/decks.module';
 @Module({
   providers: [GameService, PodService, PlayerService, GameService],
   controllers: [GameController, PodController, PlayerController, GameController],
+  exports: [PodService]
 })
 export class GameModule {}
