@@ -11,10 +11,10 @@ export class Deck extends BaseEntity {
   @Exclude()
   id: number
 
-  @Column({nullable: true})
+  @Column({nullable: true, unique: true})
   archidektId: string
 
-  @Column({unique: true})
+  @Column()
   name: string
 
   @Column({nullable: true})
