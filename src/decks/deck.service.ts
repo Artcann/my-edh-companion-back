@@ -39,6 +39,8 @@ export class DeckService {
       .leftJoin("deck.player_owner", "player")
       .leftJoin("deck.user_owner", "user2")
       .leftJoin("player.user", "user")
+      .leftJoinAndSelect("deck.games", "games")
+      .leftJoinAndSelect("deck.wins", "wins")
       .where("user.id = :id OR user2.id = :id", { id: userId })
       .getMany();
   }
