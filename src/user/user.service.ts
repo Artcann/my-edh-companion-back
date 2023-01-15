@@ -108,6 +108,7 @@ export class UserService {
     })
   
     stats.winrate = totalWonGames / totalPlayedGames
+    if (stats.winrate == null) stats.winrate = 0
 
     await Promise.all(archidecks.map(async deck => {
       if(deck.archidektId !== null) {
