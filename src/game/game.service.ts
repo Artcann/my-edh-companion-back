@@ -57,7 +57,7 @@ export class GameService {
       .leftJoin("deck.player_owner", "player")
       .leftJoin("player.user", "user")
       .where("user.id = :id OR user2.id = :id", { id: userId })
-      .orderBy("game.date", "DESC")
+      .orderBy("game.date", "ASC")
       .getMany()
 
     const gamesId = games.map(game => game.id)
