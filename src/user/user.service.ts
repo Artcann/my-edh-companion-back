@@ -108,7 +108,7 @@ export class UserService {
     })
   
     stats.winrate = totalWonGames / totalPlayedGames
-    if (stats.winrate == null) stats.winrate = 0
+    if (Number.isNaN(stats.winrate)) stats.winrate = 0
 
     await Promise.all(archidecks.map(async deck => {
       if(deck.archidektId !== null) {
@@ -125,6 +125,8 @@ export class UserService {
     if(stats.ccm != 0) stats.ccm = Number((stats.ccm / decks.length).toFixed(2))
     if(stats.salt != 0) stats.salt = Number((stats.salt / decks.length).toFixed(2))
     if(stats.total_cards != 0) stats.total_cards = Number((stats.total_cards / decks.length).toFixed(2))
+
+    console.log(stats)
 
     return stats
   }
